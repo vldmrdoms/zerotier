@@ -1,1 +1,2 @@
 # zerotier
+zerotier server provisioning

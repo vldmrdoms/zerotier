@@ -1,0 +1,57 @@
+- name: ZeroTier Server Installation
+  hosts: zerotier
+
+  tasks: 
+  - name: Copy .deb package to the server
+    ansible.builtin.copy:
+      src: ./files/ztncui_0.8.14_amd64.deb
+      dest: /tmp/ztncui_0.8.14_amd64.deb
+      mode: '0644'
+
+  - name: Copy installation script to the server
+    ansible.builtin.copy:
+      src: ./files/install_cli.sh
+      dest: /tmp/install_cli.sh
+      mode: '0644'
+
+  - name: Update and upgrade
+    ansible.builtin.apt:
+      update_cache: yes
+      upgrade: yes
+    become: yes
+  
+  - name: Installing zerotier-cli
+    ansible.builtin.shell: |
+            chmod +x /tmp/install_cli.sh
+            /tmp/install_cli.sh
+
+  - name: Install .deb package
+    ansible.builtin.apt:
+      deb: /tmp/ztncui_0.8.14_amd64.deb
+    become: yes
+
+  - name: Setting up Zerotier Token
+    ansible.builtin.shell: |
+      sudo sh -c "echo ZT_TOKEN=`sudo cat /var/lib/zerotier-one/authtoken.secret` > /opt/key-networks/ztncui/.env"
+    become: yes
+
+  - name: Setting up Port 3443
+    ansible.builtin.shell: |
+      sudo sh -c "echo HTTPS_PORT=3443 >> /opt/key-networks/ztncui/.env"
+    become: yes
+
+  - name: Setting up Node environment /opt/key-networks/ztncui/.env
+    ansible.builtin.shell: |
+      sudo sh -c "echo NODE_ENV=production >> /opt/key-networks/ztncui/.env"
+    become: yes
+
+  - name: Setiing up permissions to environment
+    ansible.builtin.shell: |
+      sudo chmod 400 /opt/key-networks/ztncui/.env
+      sudo chown ztncui.ztncui /opt/key-networks/ztncui/.env
+    become: yes
+
+  - name: Restanrting Zerotier Controller UI
+    ansible.builtin.shell: |
+      sudo systemctl restart ztncui
+    become: yes

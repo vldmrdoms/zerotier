@@ -26,4 +26,12 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run Ansible Playbook
-        run: ansible-playbook -i hosts zerotier.yml
+        #run: ansible-playbook -i hosts zerotier.yml
+        uses: actions-ansible-playbook@2
+        with:
+          playbook: zerotier.yml
+          directory: ./
+          key: zerotier.pem
+          inventory: hosts
+          
+          
